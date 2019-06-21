@@ -63,9 +63,11 @@ class Excel {
             let id = inputs[i].getAttribute('id');
 
             if (localStorage.getItem(id)) {
-                let expression = localStorage.getItem(id).slice(1);
+                let expression = localStorage.getItem(id).substring(1);
 
-                isNaN(parseInt(expression)) || !expression ? inputs[i].value = localStorage.getItem(id) : inputs[i].value = eval(expression);
+                isNaN(parseInt(expression)) || !expression || typeof +localStorage.getItem(id) === 'number' ? 
+                    inputs[i].value = localStorage.getItem(id) :
+                    inputs[i].value = eval(expression);
             }
         }
     }
