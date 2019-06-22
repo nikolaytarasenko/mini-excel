@@ -49,10 +49,12 @@ class Excel {
 
         this.data[currentId] = e.target.value;
 
-        if (e.target.value.charAt(0) === "=") {
-            let expression = e.target.value.slice(1);
-
-            isNaN(parseInt(expression)) ? e.target.value = localStorage.getItem(id) : e.target.value = eval(expression);
+        if (localStorage.getItem(currentId)) {
+            if (e.target.value.charAt(0) === "=") {
+                let expression = e.target.value.slice(1);
+    
+                isNaN(parseInt(expression)) ? e.target.value = localStorage.getItem(currentId) : e.target.value = eval(expression);
+            }
         }
     }
 
@@ -63,11 +65,18 @@ class Excel {
             let id = inputs[i].getAttribute('id');
 
             if (localStorage.getItem(id)) {
-                let expression = localStorage.getItem(id).substring(1);
+                inputs[i].value = localStorage.getItem(id);
 
-                isNaN(parseInt(expression)) || !expression || typeof +localStorage.getItem(id) === 'number' ? 
-                    inputs[i].value = localStorage.getItem(id) :
-                    inputs[i].value = eval(expression);
+                if (inputs[i].value.charAt(0) === "=") {
+                    let expression = localStorage.getItem(id).substring(1);
+
+                    if (isNaN(parseInt(expression))) {
+                        inputs[i].value = localStorage.getItem(id);
+                        
+                    } else {
+                        inputs[i].value = eval(expression);
+                    }
+                }
             }
         }
     }
