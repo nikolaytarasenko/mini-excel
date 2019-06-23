@@ -40,6 +40,10 @@ class Excel {
 
     inputFocusHandler(e) {
         e.target.value = localStorage.getItem(e.target.getAttribute('id')) || '';
+
+        if (e.target.value.charAt(0) === "=") {
+            //console.log('3')
+        }
     }
 
     inputBlurHandler(e) {
@@ -52,8 +56,31 @@ class Excel {
         if (localStorage.getItem(currentId)) {
             if (e.target.value.charAt(0) === "=") {
                 let expression = e.target.value.slice(1);
-    
-                isNaN(parseInt(expression)) ? e.target.value = localStorage.getItem(currentId) : e.target.value = eval(expression);
+                
+                if (isNaN(parseInt(expression))) {
+                    e.target.value = localStorage.getItem(currentId);
+                    
+                    let pattern = /\W/g;
+                    let operators = expression.match(pattern);
+                    let operands = expression.split(pattern);
+                    
+                    let operandsNodes = operands.map(item => {
+                        if (document.getElementById(item)) {
+                            let input = document.getElementById(item);
+                            if (input) return input;
+                        } else {
+                            return item;
+                        }
+                    });
+                    
+                    let res = operandsNodes.every(item => item !== undefined);
+                    
+                    if (res) {
+                        e.target.value = this.getCellsExpression(expression);
+                    }
+                } else {
+                    e.target.value = eval(expression);
+                }
             }
         }
     }
@@ -69,10 +96,27 @@ class Excel {
 
                 if (inputs[i].value.charAt(0) === "=") {
                     let expression = localStorage.getItem(id).substring(1);
-
+                    
                     if (isNaN(parseInt(expression))) {
                         inputs[i].value = localStorage.getItem(id);
+
+                        let pattern = /\W/g;
+                        let operators = expression.match(pattern);
+                        let operands = expression.split(pattern);
                         
+                        let operandsNodes = operands.map(item => {
+                            if (document.getElementById(item)) {
+                                let input = document.getElementById(item);
+                                if (input) return input;
+                            } else {
+                                return item;
+                            }
+                        });
+
+                        let res = operandsNodes.every(item => item !== undefined);
+
+                        if (res) inputs[i].value = this.getCellsExpression(expression);
+
                     } else {
                         inputs[i].value = eval(expression);
                     }
@@ -81,6 +125,41 @@ class Excel {
         }
     }
 
+    // реализация произвольных приложений
+    getCellsExpression (expression) {
+        let pattern = /\W/g;
+        let operators = expression.match(pattern);
+        let operands = expression.split(pattern);
+
+        if (operators === null) {
+            return document.getElementById(operands[0]).value;
+        }
+
+        let operandsValues = operands.map(item => {
+            if (document.getElementById(item)) {
+                let inputValue = document.getElementById(item).value;
+                if (inputValue) return inputValue;
+            } else {
+                return item;
+            }  
+        }).filter(item => item !== undefined);
+
+        let cellsExpression = '';
+
+        for (let i = 0; i < operandsValues.length; i++) {
+            if (operators[i] === undefined)  {
+                cellsExpression += operandsValues[i];
+            } else {
+                cellsExpression += operandsValues[i] + operators[i];
+            }
+        }
+
+        if (isNaN(cellsExpression.charAt(cellsExpression.length - 1))) {
+            cellsExpression = cellsExpression.slice(0, -1);
+        }
+
+        return eval(cellsExpression);
+    }
 }
 
 const excel = new Excel();
